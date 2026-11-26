@@ -73,7 +73,7 @@
 
     @media (min-width: 920px) {
       .game-layout {
-        grid-template-columns: 1fr 290px;
+        grid-template-columns: 1fr 310px;
       }
     }
 
@@ -85,7 +85,7 @@
       font-weight: 600;
     }
 
-    input, select, button {
+    input, select, textarea, button {
       width: 100%;
       min-height: 44px;
       padding: 9px 12px;
@@ -94,6 +94,12 @@
       background: var(--panel-2);
       color: var(--text);
       font-size: 15px;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+      font-size: 14px;
     }
 
     input[type="file"] {
@@ -107,6 +113,11 @@
       font-weight: 700;
       border: none;
       cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     button.btn-green { background: var(--success); color: #052e16; }
@@ -399,6 +410,7 @@
             <span class="pill" id="modeBadge"></span>
             <span class="pill" id="packBadge"></span>
             <span class="pill" id="roundPill"></span>
+            <span class="pill" id="turnsCountPill"></span>
             <span class="pill" id="phasePill"></span>
           </div>
           <div class="flex-row">
@@ -407,10 +419,12 @@
           </div>
         </div>
 
-        <div id="hostControls" class="flex-row hidden" style="margin-bottom:10px;">
-          <button class="btn-green btn-sm" id="startGameBtn" onclick="startGame()">▶ ابدأ الجيم</button>
+        <!-- أزرار التحكم: ابدأ الجيم وتصفير النقاط للمنشئ، و Next Turn لصاحب الدور الحالي -->
+        <div class="flex-row" style="margin-bottom:10px;">
+          <button class="btn-green btn-sm hidden" id="startGameBtn" onclick="startGame()">▶ ابدأ الجيم</button>
           <button class="btn-warn btn-sm" id="nextTurnBtn" onclick="nextTurn()">⏭ Next Turn</button>
-          <button class="btn-muted btn-sm" onclick="resetGamePoints()">تصفير النقاط</button>
+          <button class="btn-accent btn-sm hidden" id="showHintBtn" onclick="revealMyHint()">💡 Show Hint</button>
+          <button class="btn-muted btn-sm hidden" id="resetPointsBtn" onclick="resetGamePoints()">تصفير النقاط</button>
         </div>
 
         <div id="turnBanner" class="status-bar" style="margin-bottom:0;">
@@ -418,7 +432,6 @@
         </div>
       </div>
 
-      <!-- صندوق تصميم بطاقة لغيرك في وضع مقايضة الخصوم (Rival Swap) -->
       <div class="card hidden" id="swapComposerCard">
         <h4>✏️ صمّم بطاقة لتذهب فوق رأس لاعب آخر</h4>
         <div class="grid-2">
@@ -454,9 +467,19 @@
           <div class="players-grid" id="playersCardsGrid"></div>
         </div>
 
-        <div class="card">
-          <h3>🏆 Scoreboard</h3>
-          <div id="scoreboardList"></div>
+        <div>
+          <!-- Scoreboard مرتب -->
+          <div class="card">
+            <h3>🏆 Scoreboard</h3>
+            <div id="scoreboardList"></div>
+          </div>
+
+          <!-- نوتس شخصية خاصة بكل لاعب -->
+          <div class="card">
+            <h3>📝 نوتس (أسئلة وملاحظات)</h3>
+            <label for="playerNotesArea">اكتب أسئلتك وما عرفته عن بطاقتك هنا</label>
+            <textarea id="playerNotesArea" placeholder="مثال:&#10;- هل فوق رأسي شخص؟ لا&#10;- هل هو جماد؟ نعم&#10;- ملاحظات..." oninput="savePlayerNotes()"></textarea>
+          </div>
         </div>
       </div>
     </div>
@@ -482,6 +505,8 @@
     document.getElementById("connStatus").textContent = "متصل بقاعدة البيانات الحية (Firebase Realtime Database).";
 
     const PACKS_STORAGE_KEY = "guess_who_saved_packs_v1";
+    const NOTES_STORAGE_PREFIX = "guess_who_notes_v1_";
+    const HINT_REVEALED_PREFIX = "guess_who_hint_shown_v1_";
     const myPlayerId = sessionStorage.getItem("guess_who_player_id") || crypto.randomUUID();
     sessionStorage.setItem("guess_who_player_id", myPlayerId);
 
@@ -501,6 +526,35 @@
     let selectedPackTitle = "قائمة مخصصة";
     let currentRoomCode = null;
     let currentRoom = null;
+    let hintRevealedForRound = false;
+
+    function getNotesKey() {
+      const round = currentRoom?.currentRound || 1;
+      return `${NOTES_STORAGE_PREFIX}${currentRoomCode || "local"}_${myPlayerId}_r${round}`;
+    }
+
+    function getHintKey() {
+      const round = currentRoom?.currentRound || 1;
+      return `${HINT_REVEALED_PREFIX}${currentRoomCode || "local"}_${myPlayerId}_r${round}`;
+    }
+
+    function loadPlayerNotes() {
+      const area = document.getElementById("playerNotesArea");
+      if (!area) return;
+      area.value = localStorage.getItem(getNotesKey()) || "";
+    }
+
+    function savePlayerNotes() {
+      const area = document.getElementById("playerNotesArea");
+      if (!area) return;
+      localStorage.setItem(getNotesKey(), area.value);
+    }
+
+    function revealMyHint() {
+      hintRevealedForRound = true;
+      localStorage.setItem(getHintKey(), "1");
+      renderRoomUI();
+    }
 
     function updateModeDesc() {
       const m = document.getElementById("gameMode").value;
@@ -688,14 +742,12 @@
       const activeIds = eligibleIds && eligibleIds.length ? order.filter((id) => eligibleIds.includes(id)) : order;
       const submissions = roomObj.swapSubmissions || {};
 
-      // نجمع البطاقات المقدمة مع هوية مصممها
       const cards = activeIds
         .map((creatorId) => submissions[creatorId] ? { ...submissions[creatorId], creatorId } : null)
         .filter(Boolean);
 
       if (cards.length < activeIds.length) return roomObj;
 
-      // توزيع كل بطاقة على لاعب مختلف عن مصممها قدر الإمكان
       const shuffled = [...cards].sort(() => Math.random() - 0.5);
       const assignedMap = {};
       const remaining = [...shuffled];
@@ -718,13 +770,14 @@
       roomObj.players = players;
       roomObj.status = roomObj.status === "tiebreaker" ? "tiebreaker" : "playing";
       roomObj.turnIndex = 0;
+      roomObj.turnsInRound = 0;
       return roomObj;
     }
 
     function distributeCards(roomObj, eligibleIds = null) {
+      roomObj.turnsInRound = 0;
       const mode = roomObj.mode || "others_deck";
       if (mode === "rival_swap") {
-        // نبدأ مرحلة جمع بطاقات اللاعبين لهذه الجولة
         const players = roomObj.players || {};
         const order = (roomObj.playerOrder || Object.keys(players)).filter((id) => players[id]);
         order.forEach((pid) => {
@@ -814,6 +867,7 @@
         maxPlayers,
         totalRounds,
         currentRound: 1,
+        turnsInRound: 0,
         status: "lobby",
         tieCandidates: null,
         swapSubmissions: null,
@@ -877,11 +931,16 @@
       setRoomUrlParam(code);
       db.ref(`rooms/${code}`).off();
       db.ref(`rooms/${code}`).on("value", (snap) => {
+        const prevRound = currentRoom?.currentRound;
         currentRoom = snap.val();
         if (!currentRoom) {
           document.getElementById("roomScreen").classList.add("hidden");
           document.getElementById("setupScreen").classList.remove("hidden");
           return;
+        }
+        if (prevRound !== currentRoom.currentRound) {
+          hintRevealedForRound = localStorage.getItem(getHintKey()) === "1";
+          loadPlayerNotes();
         }
         document.getElementById("setupScreen").classList.add("hidden");
         document.getElementById("roomScreen").classList.remove("hidden");
@@ -891,10 +950,12 @@
 
     async function startGame() {
       if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      hintRevealedForRound = false;
       await mutateRoom(currentRoomCode, (r) => {
         r.status = "playing";
         r.currentRound = 1;
         r.turnIndex = 0;
+        r.turnsInRound = 0;
         r.winnerId = null;
         r.tieCandidates = null;
         r.seenByPlayer = {};
@@ -946,15 +1007,26 @@
     }
 
     async function nextTurn() {
-      if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      if (!currentRoom) return;
       if (currentRoom.status !== "playing" && currentRoom.status !== "tiebreaker") return;
 
+      const players = currentRoom.players || {};
+      const order = (currentRoom.playerOrder || Object.keys(players)).filter((id) => players[id]);
+      const activeList = currentRoom.status === "tiebreaker" && Array.isArray(currentRoom.tieCandidates) && currentRoom.tieCandidates.length
+        ? currentRoom.tieCandidates
+        : order;
+      const currentTurnPlayerId = activeList[(currentRoom.turnIndex || 0) % Math.max(1, activeList.length)];
+
+      // يسمح لصاحب الدور الحالي بالضغط على Next Turn
+      if (currentTurnPlayerId !== myPlayerId) return;
+
       await mutateRoom(currentRoomCode, (r) => {
-        const activeList = r.status === "tiebreaker" && Array.isArray(r.tieCandidates) && r.tieCandidates.length
+        const list = r.status === "tiebreaker" && Array.isArray(r.tieCandidates) && r.tieCandidates.length
           ? r.tieCandidates
           : (r.playerOrder || Object.keys(r.players || {}));
-        if (!activeList.length) return r;
-        r.turnIndex = ((r.turnIndex || 0) + 1) % activeList.length;
+        if (!list.length) return r;
+        r.turnIndex = ((r.turnIndex || 0) + 1) % list.length;
+        r.turnsInRound = (r.turnsInRound || 0) + 1;
         return r;
       });
     }
@@ -1006,12 +1078,14 @@
 
     async function resetGamePoints() {
       if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      hintRevealedForRound = false;
       await mutateRoom(currentRoomCode, (r) => {
         Object.keys(r.players || {}).forEach((id) => {
           r.players[id].score = 0;
         });
         r.currentRound = 1;
         r.turnIndex = 0;
+        r.turnsInRound = 0;
         r.status = "lobby";
         r.winnerId = null;
         r.tieCandidates = null;
@@ -1043,11 +1117,13 @@
       const isHost = r.hostId === myPlayerId;
       const players = r.players || {};
       const order = (r.playerOrder || Object.keys(players)).filter((id) => players[id]);
+      const turnsCount = r.turnsInRound || 0;
 
       document.getElementById("roomCodeText").textContent = r.code;
       document.getElementById("modeBadge").textContent = `Mode: ${MODE_LABELS[r.mode] || r.mode}`;
       document.getElementById("packBadge").textContent = `الحزمة: ${r.packName || "مخصصة"}`;
       document.getElementById("roundPill").textContent = `الجولة ${r.currentRound || 1} / ${r.totalRounds || 7}`;
+      document.getElementById("turnsCountPill").textContent = `الأدوار المنقضية: ${turnsCount}`;
 
       const phasePill = document.getElementById("phasePill");
       phasePill.className = "pill";
@@ -1059,31 +1135,26 @@
         phasePill.classList.add("tie");
       } else phasePill.textContent = "انتهى الجيم";
 
-      const hostCtrl = document.getElementById("hostControls");
-      hostCtrl.classList.toggle("hidden", !isHost);
-      document.getElementById("startGameBtn").disabled = r.status !== "lobby" && r.status !== "finished";
-      document.getElementById("nextTurnBtn").disabled = r.status !== "playing" && r.status !== "tiebreaker";
-
-      // صندوق المقايضة عند الحاجة
-      const swapCard = document.getElementById("swapComposerCard");
-      const needsSwap = r.mode === "rival_swap" && (r.status === "swapping" || (r.status === "tiebreaker" && (!r.tieCandidates || r.tieCandidates.includes(myPlayerId))));
-      swapCard.classList.toggle("hidden", !needsSwap);
-      if (needsSwap) {
-        const subs = r.swapSubmissions || {};
-        const targets = Array.isArray(r.swapTargets) && r.swapTargets.length
-          ? order.filter((id) => r.swapTargets.includes(id))
-          : order;
-        const doneCount = targets.filter((id) => Boolean(subs[id])).length;
-        document.getElementById("swapStatusText").textContent = subs[myPlayerId]
-          ? `تم إرسال بطاقتك (${doneCount}/${targets.length} أرسلوا)`
-          : `أرسل بطاقتك لتوزيعها (${doneCount}/${targets.length} أرسلوا)`;
-      }
-
       const activeTurnPool = r.status === "tiebreaker" && Array.isArray(r.tieCandidates) && r.tieCandidates.length
         ? r.tieCandidates
         : order;
       const currentTurnPlayerId = activeTurnPool[(r.turnIndex || 0) % Math.max(1, activeTurnPool.length)];
       const turnPlayerName = players[currentTurnPlayerId]?.name || "—";
+      const isMyTurn = (r.status === "playing" || r.status === "tiebreaker") && currentTurnPlayerId === myPlayerId;
+
+      const startBtn = document.getElementById("startGameBtn");
+      startBtn.classList.toggle("hidden", !isHost);
+      startBtn.disabled = r.status !== "lobby" && r.status !== "finished";
+
+      const resetBtn = document.getElementById("resetPointsBtn");
+      resetBtn.classList.toggle("hidden", !isHost);
+
+      const nextTurnBtn = document.getElementById("nextTurnBtn");
+      nextTurnBtn.disabled = !isMyTurn;
+
+      const canShowHintButton = (r.status === "playing" || r.status === "tiebreaker") && turnsCount >= 4 && !hintRevealedForRound;
+      const showHintBtn = document.getElementById("showHintBtn");
+      showHintBtn.classList.toggle("hidden", !canShowHintButton);
 
       const turnText = document.getElementById("turnInfoText");
       if (r.status === "lobby") {
@@ -1095,7 +1166,9 @@
       } else if (r.status === "tiebreaker") {
         turnText.textContent = `تعادل في النقاط! جولة فاصلة حاسمة — الدور الآن على: ${turnPlayerName}`;
       } else {
-        turnText.textContent = `الدور الآن على: ${turnPlayerName}`;
+        turnText.textContent = isMyTurn
+          ? `دورك الآن (${turnPlayerName}) — اسأل أصدقائك ثم اضغط Next Turn`
+          : `الدور الآن على: ${turnPlayerName}`;
       }
 
       const winBanner = document.getElementById("winnerBanner");
@@ -1106,6 +1179,7 @@
         winBanner.classList.add("hidden");
       }
 
+      const myItem = players[myPlayerId]?.assignedItem;
       const grid = document.getElementById("playersCardsGrid");
       grid.innerHTML = order.map((pid) => {
         const p = players[pid];
@@ -1130,8 +1204,9 @@
           `;
         }
 
-        const hintHtml = (!isMe && item && r.status !== "lobby" && r.status !== "swapping")
-          ? `<div class="hint-box"><strong>Hint:</strong> ${escapeHtml(item.hint)}</div>`
+        // يظهر التلميح لللاعب نفسه بعد 4 أدوار فقط إذا ضغط Show Hint
+        const hintHtml = (isMe && hintRevealedForRound && myItem && r.status !== "lobby" && r.status !== "swapping")
+          ? `<div class="hint-box"><strong>Hint الخاص بك:</strong> ${escapeHtml(myItem.hint)}</div>`
           : "";
 
         const winBtnHtml = (isHost && (r.status === "playing" || r.status === "tiebreaker"))

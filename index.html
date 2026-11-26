@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ماذا فوق رأسي؟ — مزامنة حية</title>
+  <title>ماذا فوق رأسي؟ — Modes وحزم وجولات</title>
   <style>
     :root {
       --bg: #0b1120;
@@ -15,6 +15,7 @@
       --danger: #ef4444;
       --text: #f8fafc;
       --muted: #94a3b8;
+      --border: #334155;
     }
 
     * {
@@ -28,60 +29,76 @@
       background: var(--bg);
       color: var(--text);
       padding: 14px;
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     .wrap {
-      max-width: 960px;
+      max-width: 1240px;
       margin: 0 auto;
     }
 
     h1 {
-      font-size: clamp(1.35rem, 4vw, 2rem);
+      font-size: clamp(1.3rem, 3.8vw, 1.9rem);
       margin: 0 0 14px;
       text-align: center;
       color: var(--accent);
     }
 
+    h2, h3, h4 { margin-top: 0; }
+
     .card {
       background: var(--panel);
-      border: 1px solid #334155;
-      border-radius: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
-    .lobby-grid, .controls-grid {
+    .grid-2 {
       display: grid;
       grid-template-columns: 1fr;
       gap: 14px;
     }
 
-    @media (min-width: 680px) {
-      body { padding: 22px; }
-      .card { padding: 20px; }
-      .lobby-grid, .controls-grid {
-        grid-template-columns: repeat(2, 1fr);
+    @media (min-width: 760px) {
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (min-width: 920px) {
+      .game-layout {
+        grid-template-columns: 1fr 290px;
       }
     }
 
     label {
       display: block;
-      margin-bottom: 6px;
-      font-size: 0.92rem;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
       color: #cbd5e1;
       font-weight: 600;
     }
 
     input, select, button {
       width: 100%;
-      min-height: 46px;
-      padding: 10px 14px;
-      border-radius: 11px;
+      min-height: 44px;
+      padding: 9px 12px;
+      border-radius: 10px;
       border: 1px solid #475569;
       background: var(--panel-2);
       color: var(--text);
-      font-size: 16px;
+      font-size: 15px;
+    }
+
+    input[type="file"] {
+      padding: 7px;
+      font-size: 13px;
     }
 
     button {
@@ -90,121 +107,188 @@
       font-weight: 700;
       border: none;
       cursor: pointer;
-      touch-action: manipulation;
     }
 
     button.btn-green { background: var(--success); color: #052e16; }
-    button.btn-muted { background: #334155; color: var(--text); }
+    button.btn-warn { background: var(--warning); color: #1c1917; }
     button.btn-danger { background: var(--danger); color: #fff; }
+    button.btn-muted { background: #334155; color: var(--text); }
 
-    .room-header {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: var(--panel-2);
-      padding: 12px 14px;
-      border-radius: 12px;
-      margin-bottom: 14px;
+    .btn-sm {
+      width: auto;
+      min-height: 36px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
     }
 
-    @media (min-width: 640px) {
-      .room-header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-    }
-
-    .header-btns {
+    .flex-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    .header-btns button {
-      width: auto;
-      min-height: 40px;
-      font-size: 0.9rem;
-      padding: 8px 14px;
+    .mode-desc {
+      margin-top: 6px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      background: var(--panel-2);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .items-list {
+      margin-top: 12px;
+      max-height: 240px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 8px;
+    }
+
+    .item-chip {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .item-chip img {
+      width: 42px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #1e293b;
+      flex-shrink: 0;
+    }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-2);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      background: #172554;
+      color: #bae6fd;
+    }
+
+    .pill.tie {
+      background: #78350f;
+      color: #fde68a;
     }
 
     .players-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 14px;
+      gap: 12px;
     }
 
     @media (min-width: 560px) {
       .players-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    @media (min-width: 900px) {
+    @media (min-width: 1100px) {
       .players-grid { grid-template-columns: repeat(3, 1fr); }
     }
 
     .p-card {
       background: var(--panel-2);
-      border: 2px solid #334155;
-      border-radius: 16px;
-      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
     }
 
-    .p-card.is-me {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    .p-card.is-me { border-color: var(--accent); }
+    .p-card.is-turn {
+      border-color: var(--warning);
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
     }
 
     .q-mark {
-      font-size: 2.3rem;
-      width: 74px;
-      height: 74px;
-      line-height: 70px;
-      margin: 12px auto;
+      font-size: 2.2rem;
+      width: 76px;
+      height: 76px;
+      line-height: 72px;
+      margin: 10px auto;
       border-radius: 50%;
       background: #1e293b;
       border: 2px dashed var(--warning);
       color: var(--warning);
     }
 
-    .secret-box {
-      margin: 12px auto;
-      padding: 10px 14px;
+    .thing-img {
+      width: 84px;
+      height: 84px;
+      object-fit: cover;
       border-radius: 12px;
+      margin: 8px auto 4px;
+      display: block;
+      border: 1px solid #475569;
+    }
+
+    .thing-name {
+      display: inline-block;
+      margin: 6px 0;
+      padding: 5px 12px;
+      border-radius: 999px;
       background: #172554;
       color: #bae6fd;
       font-weight: 700;
-      font-size: 1.05rem;
     }
 
     .hint-box {
       background: #1e293b;
-      border-right: 4px solid var(--accent);
-      padding: 10px 12px;
-      border-radius: 10px;
+      border-right: 3px solid var(--accent);
+      padding: 8px 10px;
+      border-radius: 8px;
       text-align: right;
-      font-size: 0.92rem;
-      margin-top: 8px;
-    }
-
-    .score-badge {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: #14532d;
-      color: #86efac;
-      font-weight: 700;
       font-size: 0.88rem;
+      margin-top: 8px;
     }
 
-    .status-note {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 8px;
+    .scoreboard-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .scoreboard-row.top1 {
+      border-color: var(--success);
+      background: #052e1644;
+    }
+
+    .winner-banner {
+      background: #14532d;
+      border: 2px solid var(--success);
+      color: #dcfce7;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 12px;
+      font-weight: 700;
     }
 
     .hidden { display: none; }
@@ -214,68 +298,167 @@
   <div class="wrap">
     <h1>🎭 ماذا فوق رأسي؟</h1>
 
-    <div class="card" id="lobbyView">
-      <div class="lobby-grid">
-        <div>
-          <h3>إنشاء غرفة</h3>
-          <label for="createName">اسمك</label>
-          <input id="createName" type="text" placeholder="اكتب اسمك..." />
+    <div id="setupScreen">
+      <div class="grid-2">
+        <div class="card">
+          <h3>1. إنشاء غرفة وتجهيز الجيم</h3>
 
-          <label for="createMax" style="margin-top:10px;">عدد اللاعبين (2 إلى 5)</label>
-          <select id="createMax">
-            <option value="2">2 لاعبين</option>
-            <option value="3" selected>3 لاعبين</option>
-            <option value="4">4 لاعبين</option>
-            <option value="5">5 لاعبين</option>
-          </select>
+          <div class="grid-2">
+            <div>
+              <label for="hostName">اسمك (منشئ الغرفة)</label>
+              <input id="hostName" type="text" placeholder="اكتب اسمك..." />
+            </div>
+            <div>
+              <label for="maxPlayers">عدد اللاعبين (2 إلى 10)</label>
+              <select id="maxPlayers">
+                <option value="2">2 لاعبين</option>
+                <option value="3">3 لاعبين</option>
+                <option value="4" selected>4 لاعبين</option>
+                <option value="5">5 لاعبين</option>
+                <option value="6">6 لاعبين</option>
+                <option value="7">7 لاعبين</option>
+                <option value="8">8 لاعبين</option>
+                <option value="9">9 لاعبين</option>
+                <option value="10">10 لاعبين</option>
+              </select>
+            </div>
+          </div>
 
-          <button style="margin-top:12px;" onclick="handleCreateRoom()">إنشاء غرفة ومشاركة الكود</button>
+          <div class="grid-2" style="margin-top:10px;">
+            <div>
+              <label for="gameMode">وضع اللعب (Game Mode)</label>
+              <select id="gameMode" onchange="updateModeDesc()">
+                <option value="others_deck" selected>بنك الآخرين (Others' Deck)</option>
+                <option value="rival_swap">مقايضة الخصوم (Rival Swap)</option>
+                <option value="pack_chaos">فوضى الحزمة (Pack Chaos)</option>
+              </select>
+            </div>
+            <div>
+              <label for="totalRounds">عدد الجولات</label>
+              <input id="totalRounds" type="number" min="1" max="50" value="7" />
+            </div>
+          </div>
+
+          <div class="mode-desc" id="modeDescBox"></div>
+
+          <hr style="border-color:var(--border); margin:14px 0;" />
+
+          <h4>حزم البطاقات المحفوظة (Save Pack)</h4>
+          <div class="flex-row" style="margin-bottom:8px;">
+            <select id="savedPackSelect" style="flex:1;" onchange="loadSelectedPackIntoDraft()">
+              <option value="">-- اختر حزمة ليقوم عليها الجيم --</option>
+            </select>
+            <button class="btn-muted btn-sm" onclick="deleteSelectedPack()">حذف الحزمة</button>
+          </div>
+
+          <div class="flex-row" style="margin-bottom:12px;">
+            <input id="packNameInput" type="text" placeholder="اسم الحزمة (مثال: عشوائي، minecraft)..." style="flex:1;" />
+            <button class="btn-warn btn-sm" onclick="saveCurrentDraftAsPack()">حفظ Pack</button>
+          </div>
+
+          <h4>إضافة بطاقة يدوية للقائمة (صورة + اسم + Hint)</h4>
+          <label for="itemNameInput">اسم الشخص أو الشيء أو النبات</label>
+          <input id="itemNameInput" type="text" placeholder="مثال: مضرب تنس، سيارة فولكس فاجن..." />
+
+          <label for="itemHintInput" style="margin-top:8px;">التلميح (Hint)</label>
+          <input id="itemHintInput" type="text" placeholder="اكتب تلميحاً واضحاً من عندك..." />
+
+          <label for="itemImageFile" style="margin-top:8px;">صورة (رفع من الجهاز أو رابط صورة)</label>
+          <input id="itemImageFile" type="file" accept="image/*" />
+          <input id="itemImageUrl" type="text" placeholder="أو ضع رابط صورة مباشر (اختياري)..." style="margin-top:6px;" />
+
+          <button class="btn-green" style="margin-top:10px;" onclick="addDraftItem()">+ أضف</button>
+
+          <div class="items-list" id="draftItemsList"></div>
+
+          <button style="margin-top:14px;" onclick="createRoomWithDraft()">إنشاء الغرفة والانتقال للوبي</button>
         </div>
 
-        <div>
-          <h3>انضمام للغرفة (Join Room)</h3>
+        <div class="card">
+          <h3>2. انضمام للغرفة (Join Room)</h3>
           <label for="joinName">اسمك</label>
           <input id="joinName" type="text" placeholder="اكتب اسمك..." />
 
           <label for="joinCode" style="margin-top:10px;">كود الغرفة</label>
           <input id="joinCode" type="text" placeholder="مثال: AB12CD" style="text-transform:uppercase;" />
 
-          <button class="btn-green" style="margin-top:12px;" onclick="handleJoinRoom()">دخول الغرفة</button>
+          <button class="btn-green" style="margin-top:14px;" onclick="joinExistingRoom()">دخول الغرفة</button>
+
+          <div style="margin-top:18px; color:var(--muted); font-size:0.88rem;" id="connStatus">
+            جاري الاتصال بقاعدة البيانات...
+          </div>
         </div>
       </div>
-      <div class="status-note" id="dbStatus">جاري التحقق من الاتصال...</div>
     </div>
 
-    <div class="card hidden" id="roomView">
-      <div class="room-header">
-        <div>
-          <div><strong>الكود:</strong> <span id="roomCodeLabel" style="color:var(--accent); font-weight:800;"></span></div>
-          <div style="font-size:0.84rem; color:var(--muted); word-break:break-all;" id="inviteUrlLabel"></div>
+    <div id="roomScreen" class="hidden">
+      <div class="card">
+        <div class="status-bar">
+          <div>
+            <strong>الكود:</strong> <span id="roomCodeText" style="color:var(--accent); font-weight:800;"></span>
+            <span class="pill" id="modeBadge"></span>
+            <span class="pill" id="packBadge"></span>
+            <span class="pill" id="roundPill"></span>
+            <span class="pill" id="phasePill"></span>
+          </div>
+          <div class="flex-row">
+            <button class="btn-muted btn-sm" onclick="copyInviteLink()">نسخ الرابط</button>
+            <button class="btn-danger btn-sm" onclick="leaveRoom()">خروج</button>
+          </div>
         </div>
-        <div class="header-btns">
-          <button class="btn-muted" onclick="copyInvite()">نسخ الرابط</button>
-          <button class="btn-danger" onclick="handleLeaveRoom()">خروج</button>
+
+        <div id="hostControls" class="flex-row hidden" style="margin-bottom:10px;">
+          <button class="btn-green btn-sm" id="startGameBtn" onclick="startGame()">▶ ابدأ الجيم</button>
+          <button class="btn-warn btn-sm" id="nextTurnBtn" onclick="nextTurn()">⏭ Next Turn</button>
+          <button class="btn-muted btn-sm" onclick="resetGamePoints()">تصفير النقاط</button>
+        </div>
+
+        <div id="turnBanner" class="status-bar" style="margin-bottom:0;">
+          <div id="turnInfoText">في انتظار بدء الجيم من منشئ الغرفة...</div>
         </div>
       </div>
 
-      <div class="controls-grid">
-        <div>
-          <label for="customThingInput">إضافة شيء عشوائي جديد (بتوليد Hint تلقائي)</label>
-          <div style="display:flex; gap:8px;">
-            <input id="customThingInput" type="text" placeholder="مثال: سماعة، مطرقة، شطرنج..." />
-            <button style="width:auto; padding:0 16px;" onclick="handleAddThing()">إضافة</button>
+      <!-- صندوق تصميم بطاقة لغيرك في وضع مقايضة الخصوم (Rival Swap) -->
+      <div class="card hidden" id="swapComposerCard">
+        <h4>✏️ صمّم بطاقة لتذهب فوق رأس لاعب آخر</h4>
+        <div class="grid-2">
+          <div>
+            <label for="swapNameInput">اسم الشيء/الشخص/النبات</label>
+            <input id="swapNameInput" type="text" placeholder="مثال: مضرب تنس..." />
+          </div>
+          <div>
+            <label for="swapHintInput">التلميح (Hint)</label>
+            <input id="swapHintInput" type="text" placeholder="تلميح يساعد الآخرين في الإجابة..." />
           </div>
         </div>
-        <div>
-          <label>إدارة الجولة والنقاط</label>
-          <div style="display:flex; gap:8px;">
-            <button onclick="dealRound()">🎲 جولة جديدة</button>
-            <button class="btn-muted" onclick="resetPoints()">تصفير النقاط</button>
+        <div class="grid-2" style="margin-top:8px;">
+          <div>
+            <label for="swapFileInput">صورة من الجهاز (اختياري)</label>
+            <input id="swapFileInput" type="file" accept="image/*" />
           </div>
+          <div>
+            <label for="swapUrlInput">رابط صورة (اختياري)</label>
+            <input id="swapUrlInput" type="text" placeholder="https://..." />
+          </div>
+        </div>
+        <div class="flex-row" style="margin-top:10px;">
+          <button class="btn-green btn-sm" onclick="submitSwapCard()">إرسال بطاقتي</button>
+          <span id="swapStatusText" style="font-size:0.85rem; color:var(--muted);"></span>
         </div>
       </div>
 
-      <div class="players-grid" id="playersGrid" style="margin-top:16px;"></div>
+      <div id="winnerBanner" class="winner-banner hidden"></div>
+
+      <div class="game-layout">
+        <div>
+          <div class="players-grid" id="playersCardsGrid"></div>
+        </div>
+
+        <div class="card">
+          <h3>🏆 Scoreboard</h3>
+          <div id="scoreboardList"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -296,252 +479,718 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    document.getElementById("dbStatus").textContent = "حالة الاتصال: متصل بقاعدة البيانات الحية (Firebase Realtime Database).";
+    document.getElementById("connStatus").textContent = "متصل بقاعدة البيانات الحية (Firebase Realtime Database).";
 
-    const defaultPool = [
-      { thing: "مظلة مطر", hint: "تُفتح فوق الرأس لحمايتك من المطر وتُطوى عند الدخول." },
-      { thing: "بوصلة", hint: "أداة صغيرة تشير دائماً نحو الشمال المغناطيسي." },
-      { thing: "فرشاة أسنان", hint: "تُستخدم يومياً للعناية بالنظافة الشخصية." },
-      { thing: "مطفأة حريق", hint: "أداة طوارئ تُستخدم لإخماد الحرائق الصغيرة." },
-      { thing: "ساعة رملية", hint: "تقيس مرور الوقت عبر نزول حبيبات دقيقة." },
-      { thing: "مصباح يدوي", hint: "مصدر ضوء محمول يُستخدم في الظلام." },
-      { thing: "قفل ومفتاح", hint: "يُستخدمان معاً لتأمين الأبواب أو الصناديق." },
-      { thing: "عدسة مكبرة", hint: "تُكبّر التفاصيل الصغيرة وتُركّز الضوء." },
-      { thing: "وسادة", hint: "تدعم الرأس أثناء النوم أو الراحة." },
-      { thing: "منبه", hint: "يصدر صوتاً في وقت محدد لإيقاظك." }
-    ];
+    const PACKS_STORAGE_KEY = "guess_who_saved_packs_v1";
+    const myPlayerId = sessionStorage.getItem("guess_who_player_id") || crypto.randomUUID();
+    sessionStorage.setItem("guess_who_player_id", myPlayerId);
 
+    const MODE_INFO = {
+      others_deck: "بنك الآخرين: تُدمج حزم اللاعبين وتُسحب لكل لاعب بطاقة لم يصممها هو، مع منع تكرار نفس البطاقة لنفس اللاعب.",
+      rival_swap: "مقايضة الخصوم: يصمم كل لاعب بطاقة من عنده وتذهب فوق رأس لاعب آخر دون أن يعرف بطاقته.",
+      pack_chaos: "فوضى الحزمة: سحب عشوائي مباشر من الحزمة المختارة بالكامل في كل جولة بأقصى سرعة."
+    };
+
+    const MODE_LABELS = {
+      others_deck: "بنك الآخرين",
+      rival_swap: "مقايضة الخصوم",
+      pack_chaos: "فوضى الحزمة"
+    };
+
+    let draftItems = [];
+    let selectedPackTitle = "قائمة مخصصة";
     let currentRoomCode = null;
-    let currentRoomData = null;
-    const myPlayerId = sessionStorage.getItem("guess_player_id") || crypto.randomUUID();
-    sessionStorage.setItem("guess_player_id", myPlayerId);
+    let currentRoom = null;
 
-    function buildHintForThing(name) {
-      const t = name.trim();
-      if (t.includes("سماعة")) return "تُوضع على الرأس أو الأذن للاستماع أو التحدث.";
-      if (t.includes("مطرقة")) return "أداة يدوية ذات رأس ثقيل تُستخدم للطرق أو التثبيت.";
-      if (t.includes("شطرنج")) return "لعبة ذهنية استراتيجية على رقعة مربعات متناوبة.";
-      const len = t.replace(/\s+/g, "").length;
-      return `شيء ملموس من الحياة اليومية له استخدام معروف (عدد حروفه ${len}).`;
+    function updateModeDesc() {
+      const m = document.getElementById("gameMode").value;
+      document.getElementById("modeDescBox").textContent = MODE_INFO[m] || "";
     }
 
-    function generateRoomCode() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let code = "";
-      for (let i = 0; i < 6; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
+    function getSavedPacks() {
+      try {
+        return JSON.parse(localStorage.getItem(PACKS_STORAGE_KEY) || "{}");
+      } catch {
+        return {};
       }
-      return code;
     }
 
-    function setRoomInUrl(code) {
-      const url = new URL(window.location.href);
-      if (code) url.searchParams.set("room", code);
-      else url.searchParams.delete("room");
-      window.history.replaceState({}, "", url);
+    function setSavedPacks(packsObj) {
+      localStorage.setItem(PACKS_STORAGE_KEY, JSON.stringify(packsObj));
+      refreshPacksDropdown();
     }
 
-    function assignItemsToPlayers(roomObj) {
-      const pool = roomObj.pool && roomObj.pool.length ? roomObj.pool : defaultPool;
-      const shuffled = [...pool].sort(() => Math.random() - 0.5);
-      const players = roomObj.players || {};
-      const ids = Object.keys(players);
-
-      ids.forEach((id, index) => {
-        const chosen = shuffled[index % shuffled.length];
-        players[id].thing = chosen.thing;
-        players[id].hint = chosen.hint;
+    function refreshPacksDropdown() {
+      const packs = getSavedPacks();
+      const sel = document.getElementById("savedPackSelect");
+      const prev = sel.value;
+      sel.innerHTML = `<option value="">-- اختر حزمة ليقوم عليها الجيم --</option>`;
+      Object.keys(packs).forEach((name) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = `${name} (${packs[name].length} عنصر)`;
+        sel.appendChild(opt);
       });
+      if (packs[prev]) sel.value = prev;
+    }
+
+    function saveCurrentDraftAsPack() {
+      const packName = document.getElementById("packNameInput").value.trim();
+      if (!packName) return alert("اكتب اسم الحزمة أولاً.");
+      if (!draftItems.length) return alert("أضف عنصراً واحداً على الأقل قبل حفظ الحزمة.");
+
+      const packs = getSavedPacks();
+      packs[packName] = draftItems.map((x) => ({ ...x }));
+      selectedPackTitle = packName;
+      setSavedPacks(packs);
+      document.getElementById("savedPackSelect").value = packName;
+      alert(`تم حفظ حزمة "${packName}" (${draftItems.length} عنصر).`);
+    }
+
+    function loadSelectedPackIntoDraft() {
+      const packName = document.getElementById("savedPackSelect").value;
+      if (!packName) {
+        selectedPackTitle = "قائمة مخصصة";
+        return;
+      }
+      const packs = getSavedPacks();
+      if (packs[packName]) {
+        draftItems = packs[packName].map((x) => ({ ...x }));
+        selectedPackTitle = packName;
+        document.getElementById("packNameInput").value = packName;
+        renderDraftItems();
+      }
+    }
+
+    function deleteSelectedPack() {
+      const packName = document.getElementById("savedPackSelect").value;
+      if (!packName) return;
+      const packs = getSavedPacks();
+      delete packs[packName];
+      setSavedPacks(packs);
+      if (selectedPackTitle === packName) selectedPackTitle = "قائمة مخصصة";
+      renderDraftItems();
+    }
+
+    function readAndCompressImage(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxDim = 240;
+            let w = img.width;
+            let h = img.height;
+            if (w > h && w > maxDim) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else if (h >= w && h > maxDim) {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", 0.65));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addDraftItem() {
+      const nameInput = document.getElementById("itemNameInput");
+      const hintInput = document.getElementById("itemHintInput");
+      const fileInput = document.getElementById("itemImageFile");
+      const urlInput = document.getElementById("itemImageUrl");
+
+      const name = nameInput.value.trim();
+      const hint = hintInput.value.trim();
+      const url = urlInput.value.trim();
+
+      if (!name) return alert("اكتب اسم الشخص أو الشيء أو النبات.");
+      if (!hint) return alert("اكتب الـ Hint الخاص بهذا العنصر.");
+
+      let image = "";
+      if (fileInput.files && fileInput.files[0]) {
+        image = await readAndCompressImage(fileInput.files[0]);
+      } else if (url) {
+        image = url;
+      }
+
+      draftItems.push({
+        id: crypto.randomUUID(),
+        name,
+        hint,
+        image,
+        creatorId: myPlayerId
+      });
+
+      nameInput.value = "";
+      hintInput.value = "";
+      fileInput.value = "";
+      urlInput.value = "";
+      renderDraftItems();
+    }
+
+    function removeDraftItem(id) {
+      draftItems = draftItems.filter((item) => item.id !== id);
+      renderDraftItems();
+    }
+
+    function renderDraftItems() {
+      const box = document.getElementById("draftItemsList");
+      if (!draftItems.length) {
+        box.innerHTML = `<div style="color:var(--muted); font-size:0.85rem;">لم تُضف عناصر بعد. اختر حزمة محفوظة أو أضف عناصر يدوياً.</div>`;
+        return;
+      }
+      box.innerHTML = draftItems.map((it) => `
+        <div class="item-chip">
+          <div style="display:flex; gap:8px; align-items:center; min-width:0;">
+            ${it.image ? `<img src="${escapeAttr(it.image)}" alt="" />` : `<div style="width:42px;height:42px;border-radius:8px;background:#1e293b;display:flex;align-items:center;justify-content:center;">📦</div>`}
+            <div style="overflow:hidden;">
+              <div style="font-weight:700; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(it.name)}</div>
+              <div style="font-size:0.78rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(it.hint)}</div>
+            </div>
+          </div>
+          <button class="btn-danger btn-sm" style="padding:4px 8px; min-height:28px;" onclick="removeDraftItem('${it.id}')">×</button>
+        </div>
+      `).join("");
+    }
+
+    function randomRoomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let out = "";
+      for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+      return out;
+    }
+
+    function setRoomUrlParam(code) {
+      const u = new URL(window.location.href);
+      if (code) u.searchParams.set("room", code);
+      else u.searchParams.delete("room");
+      window.history.replaceState({}, "", u);
+    }
+
+    async function mutateRoom(code, fn) {
+      await db.ref(`rooms/${code}`).transaction((curr) => {
+        if (!curr) return curr;
+        return fn(curr);
+      });
+    }
+
+    function applySwapAssignments(roomObj, eligibleIds = null) {
+      const players = roomObj.players || {};
+      const order = (roomObj.playerOrder || Object.keys(players)).filter((id) => players[id]);
+      const activeIds = eligibleIds && eligibleIds.length ? order.filter((id) => eligibleIds.includes(id)) : order;
+      const submissions = roomObj.swapSubmissions || {};
+
+      // نجمع البطاقات المقدمة مع هوية مصممها
+      const cards = activeIds
+        .map((creatorId) => submissions[creatorId] ? { ...submissions[creatorId], creatorId } : null)
+        .filter(Boolean);
+
+      if (cards.length < activeIds.length) return roomObj;
+
+      // توزيع كل بطاقة على لاعب مختلف عن مصممها قدر الإمكان
+      const shuffled = [...cards].sort(() => Math.random() - 0.5);
+      const assignedMap = {};
+      const remaining = [...shuffled];
+
+      activeIds.forEach((targetId) => {
+        let idx = remaining.findIndex((c) => c.creatorId !== targetId);
+        if (idx === -1) idx = 0;
+        const chosen = remaining.splice(idx, 1)[0];
+        assignedMap[targetId] = {
+          name: chosen.name,
+          hint: chosen.hint,
+          image: chosen.image || ""
+        };
+      });
+
+      order.forEach((pid) => {
+        players[pid].assignedItem = assignedMap[pid] || null;
+      });
+
       roomObj.players = players;
+      roomObj.status = roomObj.status === "tiebreaker" ? "tiebreaker" : "playing";
+      roomObj.turnIndex = 0;
       return roomObj;
     }
 
-    async function writeRoom(code, updaterFn) {
-      await db.ref(`rooms/${code}`).transaction((current) => {
-        if (!current) return current;
-        return updaterFn(current);
-      });
-    }
-
-    function subscribeToRoom(code) {
-      currentRoomCode = code;
-      setRoomInUrl(code);
-      db.ref(`rooms/${code}`).off();
-      db.ref(`rooms/${code}`).on("value", (snap) => {
-        onRoomSnapshot(snap.val());
-      });
-    }
-
-    function onRoomSnapshot(data) {
-      if (!data) {
-        currentRoomData = null;
-        document.getElementById("roomView").classList.add("hidden");
-        document.getElementById("lobbyView").classList.remove("hidden");
-        return;
+    function distributeCards(roomObj, eligibleIds = null) {
+      const mode = roomObj.mode || "others_deck";
+      if (mode === "rival_swap") {
+        // نبدأ مرحلة جمع بطاقات اللاعبين لهذه الجولة
+        const players = roomObj.players || {};
+        const order = (roomObj.playerOrder || Object.keys(players)).filter((id) => players[id]);
+        order.forEach((pid) => {
+          players[pid].assignedItem = null;
+        });
+        roomObj.players = players;
+        roomObj.swapSubmissions = {};
+        roomObj.swapTargets = eligibleIds || null;
+        roomObj.status = eligibleIds ? "tiebreaker" : "swapping";
+        return roomObj;
       }
-      currentRoomData = data;
-      document.getElementById("lobbyView").classList.add("hidden");
-      document.getElementById("roomView").classList.remove("hidden");
-      document.getElementById("roomCodeLabel").textContent = data.code;
-      document.getElementById("inviteUrlLabel").textContent = window.location.href;
-      renderPlayers();
+
+      const pool = Array.isArray(roomObj.pool) ? roomObj.pool : [];
+      if (!pool.length) return roomObj;
+
+      const players = roomObj.players || {};
+      const order = (roomObj.playerOrder || Object.keys(players)).filter((id) => players[id]);
+      const seenByPlayer = roomObj.seenByPlayer || {};
+
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      let cursor = 0;
+
+      order.forEach((pid) => {
+        const isEligible = !eligibleIds || eligibleIds.includes(pid);
+        if (!isEligible) {
+          players[pid].assignedItem = null;
+          return;
+        }
+
+        const seenList = Array.isArray(seenByPlayer[pid]) ? seenByPlayer[pid] : [];
+        let candidates = shuffled;
+
+        if (mode === "others_deck") {
+          const fromOthers = shuffled.filter((c) => c.creatorId && c.creatorId !== pid);
+          if (fromOthers.length) candidates = fromOthers;
+          const unseen = candidates.filter((c) => !seenList.includes(c.name));
+          if (unseen.length) candidates = unseen;
+        } else if (mode === "pack_chaos") {
+          const unseen = shuffled.filter((c) => !seenList.includes(c.name));
+          if (unseen.length) candidates = unseen;
+        }
+
+        const chosen = candidates[cursor % candidates.length];
+        cursor += 1;
+
+        players[pid].assignedItem = {
+          name: chosen.name,
+          hint: chosen.hint,
+          image: chosen.image || ""
+        };
+
+        if (!seenList.includes(chosen.name)) {
+          seenList.push(chosen.name);
+          seenByPlayer[pid] = seenList;
+        }
+      });
+
+      roomObj.seenByPlayer = seenByPlayer;
+      roomObj.players = players;
+      roomObj.playerOrder = order;
+      return roomObj;
     }
 
-    async function handleCreateRoom() {
-      const name = document.getElementById("createName").value.trim() || "لاعب 1";
-      const maxPlayers = parseInt(document.getElementById("createMax").value, 10);
-      const code = generateRoomCode();
+    async function createRoomWithDraft() {
+      const mode = document.getElementById("gameMode").value;
+      const selectedPack = document.getElementById("savedPackSelect").value;
+      const packs = getSavedPacks();
+      const activePool = (selectedPack && Array.isArray(packs[selectedPack]) && packs[selectedPack].length)
+        ? packs[selectedPack].map((x) => ({ ...x, creatorId: x.creatorId || myPlayerId }))
+        : draftItems.map((x) => ({ ...x, creatorId: x.creatorId || myPlayerId }));
 
-      let initialRoom = {
+      if (mode !== "rival_swap" && !activePool.length) {
+        return alert("اختر حزمة محفوظة أو أضف عنصراً واحداً على الأقل قبل إنشاء الغرفة.");
+      }
+
+      const hostName = document.getElementById("hostName").value.trim() || "المنشئ";
+      const maxPlayers = Math.min(10, Math.max(2, parseInt(document.getElementById("maxPlayers").value, 10) || 4));
+      const totalRounds = Math.max(1, parseInt(document.getElementById("totalRounds").value, 10) || 7);
+      const code = randomRoomCode();
+      const packName = selectedPack || selectedPackTitle || (mode === "rival_swap" ? "بطاقات اللاعبين" : "قائمة مخصصة");
+
+      const roomData = {
         code,
+        hostId: myPlayerId,
+        mode,
+        packName,
         maxPlayers,
-        pool: defaultPool,
+        totalRounds,
+        currentRound: 1,
+        status: "lobby",
+        tieCandidates: null,
+        swapSubmissions: null,
+        swapTargets: null,
+        seenByPlayer: {},
+        turnIndex: 0,
+        winnerId: null,
+        pool: activePool,
+        playerOrder: [myPlayerId],
         players: {
-          [myPlayerId]: { id: myPlayerId, name, score: 0, thing: "", hint: "" }
+          [myPlayerId]: {
+            id: myPlayerId,
+            name: hostName,
+            score: 0,
+            assignedItem: null
+          }
         }
       };
-      initialRoom = assignItemsToPlayers(initialRoom);
-      await db.ref(`rooms/${code}`).set(initialRoom);
-      subscribeToRoom(code);
+
+      await db.ref(`rooms/${code}`).set(roomData);
+      subscribeRoom(code);
     }
 
-    async function handleJoinRoom() {
+    async function joinExistingRoom() {
       const name = document.getElementById("joinName").value.trim();
       const code = document.getElementById("joinCode").value.trim().toUpperCase();
-      if (!name || !code) return alert("يرجى إدخال اسمك وكود الغرفة.");
+      if (!name || !code) return alert("اكتب اسمك وكود الغرفة.");
 
       const snap = await db.ref(`rooms/${code}`).get();
       const existing = snap.val();
-      if (!existing) return alert("الغرفة غير موجودة أو انتهت.");
+      if (!existing) return alert("الغرفة غير موجودة.");
 
       const players = existing.players || {};
-      const alreadyIn = Boolean(players[myPlayerId]);
-      if (!alreadyIn && Object.keys(players).length >= existing.maxPlayers) {
-        return alert("الغرفة ممتلئة بالفعل.");
+      const order = Array.isArray(existing.playerOrder) ? existing.playerOrder : Object.keys(players);
+      if (!players[myPlayerId] && order.length >= existing.maxPlayers) {
+        return alert("الغرفة ممتلئة.");
       }
 
-      await writeRoom(code, (room) => {
-        room.players = room.players || {};
-        if (!room.players[myPlayerId]) {
-          room.players[myPlayerId] = { id: myPlayerId, name, score: 0, thing: "", hint: "" };
+      await mutateRoom(code, (r) => {
+        r.players = r.players || {};
+        r.playerOrder = Array.isArray(r.playerOrder) ? r.playerOrder : Object.keys(r.players);
+        if (!r.players[myPlayerId]) {
+          r.players[myPlayerId] = {
+            id: myPlayerId,
+            name,
+            score: 0,
+            assignedItem: null
+          };
+          r.playerOrder.push(myPlayerId);
         } else {
-          room.players[myPlayerId].name = name;
+          r.players[myPlayerId].name = name;
         }
-        return assignItemsToPlayers(room);
+        return r;
       });
-      subscribeToRoom(code);
+
+      subscribeRoom(code);
     }
 
-    async function handleAddThing() {
-      const input = document.getElementById("customThingInput");
-      const thing = input.value.trim();
-      if (!thing || !currentRoomCode) return;
-
-      const hint = buildHintForThing(thing);
-      input.value = "";
-
-      await writeRoom(currentRoomCode, (room) => {
-        room.pool = room.pool || [...defaultPool];
-        room.pool.push({ thing, hint });
-        return room;
-      });
-    }
-
-    async function dealRound() {
-      if (!currentRoomCode) return;
-      await writeRoom(currentRoomCode, (room) => assignItemsToPlayers(room));
-    }
-
-    async function awardPoint(playerId) {
-      if (!currentRoomCode) return;
-      await writeRoom(currentRoomCode, (room) => {
-        if (room.players && room.players[playerId]) {
-          room.players[playerId].score = (room.players[playerId].score || 0) + 1;
+    function subscribeRoom(code) {
+      currentRoomCode = code;
+      setRoomUrlParam(code);
+      db.ref(`rooms/${code}`).off();
+      db.ref(`rooms/${code}`).on("value", (snap) => {
+        currentRoom = snap.val();
+        if (!currentRoom) {
+          document.getElementById("roomScreen").classList.add("hidden");
+          document.getElementById("setupScreen").classList.remove("hidden");
+          return;
         }
-        return assignItemsToPlayers(room);
+        document.getElementById("setupScreen").classList.add("hidden");
+        document.getElementById("roomScreen").classList.remove("hidden");
+        renderRoomUI();
       });
     }
 
-    async function resetPoints() {
-      if (!currentRoomCode) return;
-      await writeRoom(currentRoomCode, (room) => {
-        Object.keys(room.players || {}).forEach((id) => {
-          room.players[id].score = 0;
+    async function startGame() {
+      if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      await mutateRoom(currentRoomCode, (r) => {
+        r.status = "playing";
+        r.currentRound = 1;
+        r.turnIndex = 0;
+        r.winnerId = null;
+        r.tieCandidates = null;
+        r.seenByPlayer = {};
+        return distributeCards(r);
+      });
+    }
+
+    async function submitSwapCard() {
+      if (!currentRoom || currentRoom.mode !== "rival_swap") return;
+      const nameEl = document.getElementById("swapNameInput");
+      const hintEl = document.getElementById("swapHintInput");
+      const fileEl = document.getElementById("swapFileInput");
+      const urlEl = document.getElementById("swapUrlInput");
+
+      const name = nameEl.value.trim();
+      const hint = hintEl.value.trim();
+      const url = urlEl.value.trim();
+
+      if (!name || !hint) return alert("اكتب اسم البطاقة والتلميح (Hint).");
+
+      let image = "";
+      if (fileEl.files && fileEl.files[0]) {
+        image = await readAndCompressImage(fileEl.files[0]);
+      } else if (url) {
+        image = url;
+      }
+
+      await mutateRoom(currentRoomCode, (r) => {
+        r.swapSubmissions = r.swapSubmissions || {};
+        r.swapSubmissions[myPlayerId] = { name, hint, image };
+
+        const players = r.players || {};
+        const order = (r.playerOrder || Object.keys(players)).filter((id) => players[id]);
+        const targets = Array.isArray(r.swapTargets) && r.swapTargets.length
+          ? order.filter((id) => r.swapTargets.includes(id))
+          : order;
+
+        const allReady = targets.every((id) => Boolean(r.swapSubmissions[id]));
+        if (allReady) {
+          return applySwapAssignments(r, r.swapTargets);
+        }
+        return r;
+      });
+
+      nameEl.value = "";
+      hintEl.value = "";
+      fileEl.value = "";
+      urlEl.value = "";
+    }
+
+    async function nextTurn() {
+      if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      if (currentRoom.status !== "playing" && currentRoom.status !== "tiebreaker") return;
+
+      await mutateRoom(currentRoomCode, (r) => {
+        const activeList = r.status === "tiebreaker" && Array.isArray(r.tieCandidates) && r.tieCandidates.length
+          ? r.tieCandidates
+          : (r.playerOrder || Object.keys(r.players || {}));
+        if (!activeList.length) return r;
+        r.turnIndex = ((r.turnIndex || 0) + 1) % activeList.length;
+        return r;
+      });
+    }
+
+    async function awardWin(winnerPlayerId) {
+      if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      if (currentRoom.status !== "playing" && currentRoom.status !== "tiebreaker") return;
+
+      await mutateRoom(currentRoomCode, (r) => {
+        const players = r.players || {};
+        if (!players[winnerPlayerId]) return r;
+
+        players[winnerPlayerId].score = (players[winnerPlayerId].score || 0) + 1;
+
+        if (r.status === "tiebreaker") {
+          r.status = "finished";
+          r.winnerId = winnerPlayerId;
+          r.tieCandidates = null;
+          return r;
+        }
+
+        const totalRounds = r.totalRounds || 7;
+        const justFinishedRound = r.currentRound || 1;
+
+        if (justFinishedRound < totalRounds) {
+          r.currentRound = justFinishedRound + 1;
+          r.turnIndex = 0;
+          return distributeCards(r);
+        }
+
+        const ids = Object.keys(players);
+        const maxScore = Math.max(...ids.map((id) => players[id].score || 0));
+        const topPlayers = ids.filter((id) => (players[id].score || 0) === maxScore);
+
+        if (topPlayers.length === 1) {
+          r.status = "finished";
+          r.winnerId = topPlayers[0];
+          r.tieCandidates = null;
+        } else {
+          r.status = "tiebreaker";
+          r.tieCandidates = topPlayers;
+          r.turnIndex = 0;
+          return distributeCards(r, topPlayers);
+        }
+
+        return r;
+      });
+    }
+
+    async function resetGamePoints() {
+      if (!currentRoom || currentRoom.hostId !== myPlayerId) return;
+      await mutateRoom(currentRoomCode, (r) => {
+        Object.keys(r.players || {}).forEach((id) => {
+          r.players[id].score = 0;
         });
-        return room;
+        r.currentRound = 1;
+        r.turnIndex = 0;
+        r.status = "lobby";
+        r.winnerId = null;
+        r.tieCandidates = null;
+        r.swapSubmissions = null;
+        r.seenByPlayer = {};
+        return r;
       });
     }
 
-    async function handleLeaveRoom() {
+    async function leaveRoom() {
       if (currentRoomCode) {
         await db.ref(`rooms/${currentRoomCode}/players/${myPlayerId}`).remove();
         db.ref(`rooms/${currentRoomCode}`).off();
       }
       currentRoomCode = null;
-      currentRoomData = null;
-      setRoomInUrl(null);
-      document.getElementById("roomView").classList.add("hidden");
-      document.getElementById("lobbyView").classList.remove("hidden");
+      currentRoom = null;
+      setRoomUrlParam(null);
+      document.getElementById("roomScreen").classList.add("hidden");
+      document.getElementById("setupScreen").classList.remove("hidden");
     }
 
-    function copyInvite() {
+    function copyInviteLink() {
       navigator.clipboard?.writeText(window.location.href);
-      alert("تم نسخ رابط الغرفة.");
+      alert("تم نسخ الرابط.");
     }
 
-    function renderPlayers() {
-      if (!currentRoomData) return;
-      const list = Object.values(currentRoomData.players || {});
-      const grid = document.getElementById("playersGrid");
+    function renderRoomUI() {
+      const r = currentRoom;
+      const isHost = r.hostId === myPlayerId;
+      const players = r.players || {};
+      const order = (r.playerOrder || Object.keys(players)).filter((id) => players[id]);
 
-      grid.innerHTML = list.map((p) => {
-        const isSelf = p.id === myPlayerId;
+      document.getElementById("roomCodeText").textContent = r.code;
+      document.getElementById("modeBadge").textContent = `Mode: ${MODE_LABELS[r.mode] || r.mode}`;
+      document.getElementById("packBadge").textContent = `الحزمة: ${r.packName || "مخصصة"}`;
+      document.getElementById("roundPill").textContent = `الجولة ${r.currentRound || 1} / ${r.totalRounds || 7}`;
+
+      const phasePill = document.getElementById("phasePill");
+      phasePill.className = "pill";
+      if (r.status === "lobby") phasePill.textContent = "في اللوبي";
+      else if (r.status === "swapping") phasePill.textContent = "إرسال بطاقات المقايضة";
+      else if (r.status === "playing") phasePill.textContent = "الجيم جاري";
+      else if (r.status === "tiebreaker") {
+        phasePill.textContent = "جولة فاصلة (كسر التعادل)";
+        phasePill.classList.add("tie");
+      } else phasePill.textContent = "انتهى الجيم";
+
+      const hostCtrl = document.getElementById("hostControls");
+      hostCtrl.classList.toggle("hidden", !isHost);
+      document.getElementById("startGameBtn").disabled = r.status !== "lobby" && r.status !== "finished";
+      document.getElementById("nextTurnBtn").disabled = r.status !== "playing" && r.status !== "tiebreaker";
+
+      // صندوق المقايضة عند الحاجة
+      const swapCard = document.getElementById("swapComposerCard");
+      const needsSwap = r.mode === "rival_swap" && (r.status === "swapping" || (r.status === "tiebreaker" && (!r.tieCandidates || r.tieCandidates.includes(myPlayerId))));
+      swapCard.classList.toggle("hidden", !needsSwap);
+      if (needsSwap) {
+        const subs = r.swapSubmissions || {};
+        const targets = Array.isArray(r.swapTargets) && r.swapTargets.length
+          ? order.filter((id) => r.swapTargets.includes(id))
+          : order;
+        const doneCount = targets.filter((id) => Boolean(subs[id])).length;
+        document.getElementById("swapStatusText").textContent = subs[myPlayerId]
+          ? `تم إرسال بطاقتك (${doneCount}/${targets.length} أرسلوا)`
+          : `أرسل بطاقتك لتوزيعها (${doneCount}/${targets.length} أرسلوا)`;
+      }
+
+      const activeTurnPool = r.status === "tiebreaker" && Array.isArray(r.tieCandidates) && r.tieCandidates.length
+        ? r.tieCandidates
+        : order;
+      const currentTurnPlayerId = activeTurnPool[(r.turnIndex || 0) % Math.max(1, activeTurnPool.length)];
+      const turnPlayerName = players[currentTurnPlayerId]?.name || "—";
+
+      const turnText = document.getElementById("turnInfoText");
+      if (r.status === "lobby") {
+        turnText.textContent = `اللاعبون في اللوبي (${order.length}/${r.maxPlayers}) — ينتظرون ضغط منشئ الغرفة على "ابدأ الجيم".`;
+      } else if (r.status === "swapping") {
+        turnText.textContent = `الجولة ${r.currentRound}: كل لاعب يصمم بطاقة لتُوزّع على غيره.`;
+      } else if (r.status === "finished") {
+        turnText.textContent = `انتهى الجيم بعد ${r.totalRounds} جولات.`;
+      } else if (r.status === "tiebreaker") {
+        turnText.textContent = `تعادل في النقاط! جولة فاصلة حاسمة — الدور الآن على: ${turnPlayerName}`;
+      } else {
+        turnText.textContent = `الدور الآن على: ${turnPlayerName}`;
+      }
+
+      const winBanner = document.getElementById("winnerBanner");
+      if (r.status === "finished" && r.winnerId && players[r.winnerId]) {
+        winBanner.classList.remove("hidden");
+        winBanner.textContent = `🏆 الفائز باللعبة: ${players[r.winnerId].name} (${players[r.winnerId].score || 0} نقطة)`;
+      } else {
+        winBanner.classList.add("hidden");
+      }
+
+      const grid = document.getElementById("playersCardsGrid");
+      grid.innerHTML = order.map((pid) => {
+        const p = players[pid];
+        const isMe = pid === myPlayerId;
+        const isTurn = (r.status === "playing" || r.status === "tiebreaker") && pid === currentTurnPlayerId;
+        const item = p.assignedItem;
+
+        let centerContent = "";
+        if (r.status === "lobby" || r.status === "swapping") {
+          centerContent = `<div style="color:var(--muted); margin:16px 0;">في انتظار بدء الجولة...</div>`;
+        } else if (isMe) {
+          centerContent = `
+            <div class="q-mark">❓</div>
+            <div style="color:var(--warning); font-size:0.88rem; font-weight:600;">مخفي عنك — اسأل أصدقاءك</div>
+          `;
+        } else if (!item) {
+          centerContent = `<div style="color:var(--muted); margin:16px 0;">غير مشارك في الجولة الفاصلة</div>`;
+        } else {
+          centerContent = `
+            ${item.image ? `<img class="thing-img" src="${escapeAttr(item.image)}" alt="" />` : ""}
+            <div class="thing-name">${escapeHtml(item.name)}</div>
+          `;
+        }
+
+        const hintHtml = (!isMe && item && r.status !== "lobby" && r.status !== "swapping")
+          ? `<div class="hint-box"><strong>Hint:</strong> ${escapeHtml(item.hint)}</div>`
+          : "";
+
+        const winBtnHtml = (isHost && (r.status === "playing" || r.status === "tiebreaker"))
+          ? `<div style="margin-top:12px;">
+               <button class="btn-green btn-sm" onclick="awardWin('${pid}')">فاز ${escapeHtml(p.name)} (+1)</button>
+             </div>`
+          : "";
+
         return `
-          <div class="p-card ${isSelf ? "is-me" : ""}">
-            <div>
-              <div style="font-weight:800; font-size:1.1rem;">
-                ${escapeHtml(p.name)} ${isSelf ? "(أنت)" : ""}
-              </div>
-              <div class="score-badge">النقاط: ${p.score || 0}</div>
-
-              ${
-                isSelf
-                  ? `<div class="q-mark">❓</div>
-                     <div style="color:var(--warning); font-size:0.9rem; font-weight:600;">
-                       مخفي عنك — اسأل أصدقاءك واكتشفه
-                     </div>`
-                  : `<div class="secret-box">🎯 ${escapeHtml(p.thing || "—")}</div>
-                     <div style="color:var(--muted); font-size:0.84rem;">
-                       أنت ترى ما فوق رأسه
-                     </div>`
-              }
-
-              <div class="hint-box">
-                <strong>تلميح:</strong> ${escapeHtml(p.hint || "")}
-              </div>
+          <div class="p-card ${isMe ? "is-me" : ""} ${isTurn ? "is-turn" : ""}">
+            <div style="font-weight:800; font-size:1.05rem;">
+              ${escapeHtml(p.name)} ${isMe ? "(أنت)" : ""} ${pid === r.hostId ? "👑" : ""}
             </div>
-
-            <div style="margin-top:14px;">
-              <button class="btn-green" onclick="awardPoint('${p.id}')">
-                ✓ خمّن صح (+1 نقطة)
-              </button>
-            </div>
+            ${isTurn ? `<div class="pill" style="margin-top:6px; background:#78350f; color:#fde68a;">دوره الآن</div>` : ""}
+            ${centerContent}
+            ${hintHtml}
+            ${winBtnHtml}
           </div>
         `;
       }).join("");
+
+      const sorted = order
+        .map((id) => players[id])
+        .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+      const sb = document.getElementById("scoreboardList");
+      sb.innerHTML = sorted.map((p, idx) => `
+        <div class="scoreboard-row ${idx === 0 ? "top1" : ""}">
+          <div>
+            <strong>#${idx + 1}</strong> ${escapeHtml(p.name)}
+          </div>
+          <span class="pill">${p.score || 0} نقطة</span>
+        </div>
+      `).join("");
     }
 
     function escapeHtml(str) {
-      return String(str)
+      return String(str || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
     }
 
-    const urlRoom = new URLSearchParams(window.location.search).get("room");
-    if (urlRoom) {
-      document.getElementById("joinCode").value = urlRoom.toUpperCase();
+    function escapeAttr(url) {
+      const clean = String(url || "").trim();
+      if (clean.startsWith("data:image/") || clean.startsWith("https://") || clean.startsWith("http://")) {
+        return clean.replace(/"/g, "&quot;");
+      }
+      return "";
+    }
+
+    updateModeDesc();
+    refreshPacksDropdown();
+    renderDraftItems();
+
+    const initialCode = new URLSearchParams(window.location.search).get("room");
+    if (initialCode) {
+      document.getElementById("joinCode").value = initialCode.toUpperCase();
     }
   </script>
 </body>

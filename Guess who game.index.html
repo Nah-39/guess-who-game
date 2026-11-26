@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ماذا فوق رأسي؟ — مزامنة حية</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #1e293b;
+      --panel-2: #0f172a;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 14px;
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: clamp(1.35rem, 4vw, 2rem);
+      margin: 0 0 14px;
+      text-align: center;
+      color: var(--accent);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .lobby-grid, .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 680px) {
+      body { padding: 22px; }
+      .card { padding: 20px; }
+      .lobby-grid, .controls-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    input, select, button {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 14px;
+      border-radius: 11px;
+      border: 1px solid #475569;
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    button {
+      background: var(--accent);
+      color: #082f49;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button.btn-green { background: var(--success); color: #052e16; }
+    button.btn-muted { background: #334155; color: var(--text); }
+    button.btn-danger { background: var(--danger); color: #fff; }
+
+    .room-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--panel-2);
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 640px) {
+      .room-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .header-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .header-btns button {
+      width: auto;
+      min-height: 40px;
+      font-size: 0.9rem;
+      padding: 8px 14px;
+    }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 560px) {
+      .players-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 900px) {
+      .players-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .p-card {
+      background: var(--panel-2);
+      border: 2px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .p-card.is-me {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+
+    .q-mark {
+      font-size: 2.3rem;
+      width: 74px;
+      height: 74px;
+      line-height: 70px;
+      margin: 12px auto;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px dashed var(--warning);
+      color: var(--warning);
+    }
+
+    .secret-box {
+      margin: 12px auto;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #172554;
+      color: #bae6fd;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .hint-box {
+      background: #1e293b;
+      border-right: 4px solid var(--accent);
+      padding: 10px 12px;
+      border-radius: 10px;
+      text-align: right;
+      font-size: 0.92rem;
+      margin-top: 8px;
+    }
+
+    .score-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #14532d;
+      color: #86efac;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .status-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🎭 ماذا فوق رأسي؟</h1>
+
+    <div class="card" id="lobbyView">
+      <div class="lobby-grid">
+        <div>
+          <h3>إنشاء غرفة</h3>
+          <label for="createName">اسمك</label>
+          <input id="createName" type="text" placeholder="اكتب اسمك..." />
+
+          <label for="createMax" style="margin-top:10px;">عدد اللاعبين (2 إلى 5)</label>
+          <select id="createMax">
+            <option value="2">2 لاعبين</option>
+            <option value="3" selected>3 لاعبين</option>
+            <option value="4">4 لاعبين</option>
+            <option value="5">5 لاعبين</option>
+          </select>
+
+          <button style="margin-top:12px;" onclick="handleCreateRoom()">إنشاء غرفة ومشاركة الكود</button>
+        </div>
+
+        <div>
+          <h3>انضمام للغرفة (Join Room)</h3>
+          <label for="joinName">اسمك</label>
+          <input id="joinName" type="text" placeholder="اكتب اسمك..." />
+
+          <label for="joinCode" style="margin-top:10px;">كود الغرفة</label>
+          <input id="joinCode" type="text" placeholder="مثال: AB12CD" style="text-transform:uppercase;" />
+
+          <button class="btn-green" style="margin-top:12px;" onclick="handleJoinRoom()">دخول الغرفة</button>
+        </div>
+      </div>
+      <div class="status-note" id="dbStatus">جاري التحقق من الاتصال...</div>
+    </div>
+
+    <div class="card hidden" id="roomView">
+      <div class="room-header">
+        <div>
+          <div><strong>الكود:</strong> <span id="roomCodeLabel" style="color:var(--accent); font-weight:800;"></span></div>
+          <div style="font-size:0.84rem; color:var(--muted); word-break:break-all;" id="inviteUrlLabel"></div>
+        </div>
+        <div class="header-btns">
+          <button class="btn-muted" onclick="copyInvite()">نسخ الرابط</button>
+          <button class="btn-danger" onclick="handleLeaveRoom()">خروج</button>
+        </div>
+      </div>
+
+      <div class="controls-grid">
+        <div>
+          <label for="customThingInput">إضافة شيء عشوائي جديد (بتوليد Hint تلقائي)</label>
+          <div style="display:flex; gap:8px;">
+            <input id="customThingInput" type="text" placeholder="مثال: سماعة، مطرقة، شطرنج..." />
+            <button style="width:auto; padding:0 16px;" onclick="handleAddThing()">إضافة</button>
+          </div>
+        </div>
+        <div>
+          <label>إدارة الجولة والنقاط</label>
+          <div style="display:flex; gap:8px;">
+            <button onclick="dealRound()">🎲 جولة جديدة</button>
+            <button class="btn-muted" onclick="resetPoints()">تصفير النقاط</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="players-grid" id="playersGrid" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPtkmI-UzpQ0gzWbyT0cz7IR_jkVYu5t4",
+      authDomain: "guess-who-game-dbd4d.firebaseapp.com",
+      databaseURL: "https://guess-who-game-dbd4d-default-rtdb.firebaseio.com",
+      projectId: "guess-who-game-dbd4d",
+      storageBucket: "guess-who-game-dbd4d.firebasestorage.app",
+      messagingSenderId: "651260348354",
+      appId: "1:651260348354:web:7706862e36ac593bfe785b",
+      measurementId: "G-GYG64L6XV0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    document.getElementById("dbStatus").textContent = "حالة الاتصال: متصل بقاعدة البيانات الحية (Firebase Realtime Database).";
+
+    const defaultPool = [
+      { thing: "مظلة مطر", hint: "تُفتح فوق الرأس لحمايتك من المطر وتُطوى عند الدخول." },
+      { thing: "بوصلة", hint: "أداة صغيرة تشير دائماً نحو الشمال المغناطيسي." },
+      { thing: "فرشاة أسنان", hint: "تُستخدم يومياً للعناية بالنظافة الشخصية." },
+      { thing: "مطفأة حريق", hint: "أداة طوارئ تُستخدم لإخماد الحرائق الصغيرة." },
+      { thing: "ساعة رملية", hint: "تقيس مرور الوقت عبر نزول حبيبات دقيقة." },
+      { thing: "مصباح يدوي", hint: "مصدر ضوء محمول يُستخدم في الظلام." },
+      { thing: "قفل ومفتاح", hint: "يُستخدمان معاً لتأمين الأبواب أو الصناديق." },
+      { thing: "عدسة مكبرة", hint: "تُكبّر التفاصيل الصغيرة وتُركّز الضوء." },
+      { thing: "وسادة", hint: "تدعم الرأس أثناء النوم أو الراحة." },
+      { thing: "منبه", hint: "يصدر صوتاً في وقت محدد لإيقاظك." }
+    ];
+
+    let currentRoomCode = null;
+    let currentRoomData = null;
+    const myPlayerId = sessionStorage.getItem("guess_player_id") || crypto.randomUUID();
+    sessionStorage.setItem("guess_player_id", myPlayerId);
+
+    function buildHintForThing(name) {
+      const t = name.trim();
+      if (t.includes("سماعة")) return "تُوضع على الرأس أو الأذن للاستماع أو التحدث.";
+      if (t.includes("مطرقة")) return "أداة يدوية ذات رأس ثقيل تُستخدم للطرق أو التثبيت.";
+      if (t.includes("شطرنج")) return "لعبة ذهنية استراتيجية على رقعة مربعات متناوبة.";
+      const len = t.replace(/\s+/g, "").length;
+      return `شيء ملموس من الحياة اليومية له استخدام معروف (عدد حروفه ${len}).`;
+    }
+
+    function generateRoomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return code;
+    }
+
+    function setRoomInUrl(code) {
+      const url = new URL(window.location.href);
+      if (code) url.searchParams.set("room", code);
+      else url.searchParams.delete("room");
+      window.history.replaceState({}, "", url);
+    }
+
+    function assignItemsToPlayers(roomObj) {
+      const pool = roomObj.pool && roomObj.pool.length ? roomObj.pool : defaultPool;
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      const players = roomObj.players || {};
+      const ids = Object.keys(players);
+
+      ids.forEach((id, index) => {
+        const chosen = shuffled[index % shuffled.length];
+        players[id].thing = chosen.thing;
+        players[id].hint = chosen.hint;
+      });
+      roomObj.players = players;
+      return roomObj;
+    }
+
+    async function writeRoom(code, updaterFn) {
+      await db.ref(`rooms/${code}`).transaction((current) => {
+        if (!current) return current;
+        return updaterFn(current);
+      });
+    }
+
+    function subscribeToRoom(code) {
+      currentRoomCode = code;
+      setRoomInUrl(code);
+      db.ref(`rooms/${code}`).off();
+      db.ref(`rooms/${code}`).on("value", (snap) => {
+        onRoomSnapshot(snap.val());
+      });
+    }
+
+    function onRoomSnapshot(data) {
+      if (!data) {
+        currentRoomData = null;
+        document.getElementById("roomView").classList.add("hidden");
+        document.getElementById("lobbyView").classList.remove("hidden");
+        return;
+      }
+      currentRoomData = data;
+      document.getElementById("lobbyView").classList.add("hidden");
+      document.getElementById("roomView").classList.remove("hidden");
+      document.getElementById("roomCodeLabel").textContent = data.code;
+      document.getElementById("inviteUrlLabel").textContent = window.location.href;
+      renderPlayers();
+    }
+
+    async function handleCreateRoom() {
+      const name = document.getElementById("createName").value.trim() || "لاعب 1";
+      const maxPlayers = parseInt(document.getElementById("createMax").value, 10);
+      const code = generateRoomCode();
+
+      let initialRoom = {
+        code,
+        maxPlayers,
+        pool: defaultPool,
+        players: {
+          [myPlayerId]: { id: myPlayerId, name, score: 0, thing: "", hint: "" }
+        }
+      };
+      initialRoom = assignItemsToPlayers(initialRoom);
+      await db.ref(`rooms/${code}`).set(initialRoom);
+      subscribeToRoom(code);
+    }
+
+    async function handleJoinRoom() {
+      const name = document.getElementById("joinName").value.trim();
+      const code = document.getElementById("joinCode").value.trim().toUpperCase();
+      if (!name || !code) return alert("يرجى إدخال اسمك وكود الغرفة.");
+
+      const snap = await db.ref(`rooms/${code}`).get();
+      const existing = snap.val();
+      if (!existing) return alert("الغرفة غير موجودة أو انتهت.");
+
+      const players = existing.players || {};
+      const alreadyIn = Boolean(players[myPlayerId]);
+      if (!alreadyIn && Object.keys(players).length >= existing.maxPlayers) {
+        return alert("الغرفة ممتلئة بالفعل.");
+      }
+
+      await writeRoom(code, (room) => {
+        room.players = room.players || {};
+        if (!room.players[myPlayerId]) {
+          room.players[myPlayerId] = { id: myPlayerId, name, score: 0, thing: "", hint: "" };
+        } else {
+          room.players[myPlayerId].name = name;
+        }
+        return assignItemsToPlayers(room);
+      });
+      subscribeToRoom(code);
+    }
+
+    async function handleAddThing() {
+      const input = document.getElementById("customThingInput");
+      const thing = input.value.trim();
+      if (!thing || !currentRoomCode) return;
+
+      const hint = buildHintForThing(thing);
+      input.value = "";
+
+      await writeRoom(currentRoomCode, (room) => {
+        room.pool = room.pool || [...defaultPool];
+        room.pool.push({ thing, hint });
+        return room;
+      });
+    }
+
+    async function dealRound() {
+      if (!currentRoomCode) return;
+      await writeRoom(currentRoomCode, (room) => assignItemsToPlayers(room));
+    }
+
+    async function awardPoint(playerId) {
+      if (!currentRoomCode) return;
+      await writeRoom(currentRoomCode, (room) => {
+        if (room.players && room.players[playerId]) {
+          room.players[playerId].score = (room.players[playerId].score || 0) + 1;
+        }
+        return assignItemsToPlayers(room);
+      });
+    }
+
+    async function resetPoints() {
+      if (!currentRoomCode) return;
+      await writeRoom(currentRoomCode, (room) => {
+        Object.keys(room.players || {}).forEach((id) => {
+          room.players[id].score = 0;
+        });
+        return room;
+      });
+    }
+
+    async function handleLeaveRoom() {
+      if (currentRoomCode) {
+        await db.ref(`rooms/${currentRoomCode}/players/${myPlayerId}`).remove();
+        db.ref(`rooms/${currentRoomCode}`).off();
+      }
+      currentRoomCode = null;
+      currentRoomData = null;
+      setRoomInUrl(null);
+      document.getElementById("roomView").classList.add("hidden");
+      document.getElementById("lobbyView").classList.remove("hidden");
+    }
+
+    function copyInvite() {
+      navigator.clipboard?.writeText(window.location.href);
+      alert("تم نسخ رابط الغرفة.");
+    }
+
+    function renderPlayers() {
+      if (!currentRoomData) return;
+      const list = Object.values(currentRoomData.players || {});
+      const grid = document.getElementById("playersGrid");
+
+      grid.innerHTML = list.map((p) => {
+        const isSelf = p.id === myPlayerId;
+        return `
+          <div class="p-card ${isSelf ? "is-me" : ""}">
+            <div>
+              <div style="font-weight:800; font-size:1.1rem;">
+                ${escapeHtml(p.name)} ${isSelf ? "(أنت)" : ""}
+              </div>
+              <div class="score-badge">النقاط: ${p.score || 0}</div>
+
+              ${
+                isSelf
+                  ? `<div class="q-mark">❓</div>
+                     <div style="color:var(--warning); font-size:0.9rem; font-weight:600;">
+                       مخفي عنك — اسأل أصدقاءك واكتشفه
+                     </div>`
+                  : `<div class="secret-box">🎯 ${escapeHtml(p.thing || "—")}</div>
+                     <div style="color:var(--muted); font-size:0.84rem;">
+                       أنت ترى ما فوق رأسه
+                     </div>`
+              }
+
+              <div class="hint-box">
+                <strong>تلميح:</strong> ${escapeHtml(p.hint || "")}
+              </div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <button class="btn-green" onclick="awardPoint('${p.id}')">
+                ✓ خمّن صح (+1 نقطة)
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    const urlRoom = new URLSearchParams(window.location.search).get("room");
+    if (urlRoom) {
+      document.getElementById("joinCode").value = urlRoom.toUpperCase();
+    }
+  </script>
+</body>
+</html>
